@@ -54,9 +54,10 @@ class PostsController extends Controller
         // create tags
         $tagArr=json_decode($request->tags);
         $newTag=new Tag;
-        /* foreach($tagArr as $tags){
-            $tag=newTag::firstOrCreate([])
-        } */
+        foreach($tagArr as $tag){
+            $currentTag=Tag::firstOrCreate(['name'=>$tag]);
+            $newPost->tags()->attach($currentTag);
+        }
 
 
         //send response
@@ -71,9 +72,9 @@ class PostsController extends Controller
      */
     public function show($id)
     {
-        $post=Post::where('id',$id)->get();
-        
-        return $post;
+        $post=Post::where('id',$id)->first();
+        $tags=$post->tags;
+        return json_encode($post);
     }
 
     /**
