@@ -72,8 +72,11 @@ class PostsController extends Controller
      */
     public function show($id)
     {
+        
         $post=Post::where('id',$id)->first();
+        $post->increment("views");
         $tags=$post->tags;
+        $post->save();
         return json_encode($post);
     }
 
