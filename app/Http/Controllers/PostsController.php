@@ -18,7 +18,16 @@ class PostsController extends Controller
      */
     public function index()
     {
-        $posts= Post::select('id','thumbnail')->get();//::orderBy("created_at","asc")->get();
+        $posts= Post::select('id','thumbnail')->paginate(10);//::orderBy("created_at","asc")->get();
+        return $posts;
+    }
+
+    public function getNew(){
+        $posts= Post::orderBy("created_at","desc")->select('id','thumbnail')->get();
+        return $posts;
+    }
+    public function getPopular(){
+        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->get();
         return $posts;
     }
 
@@ -73,6 +82,14 @@ class PostsController extends Controller
     public function show($id)
     {
         
+        $post=Post::where('id',$id)->first();
+        $post->increment("views");
+        $tags=$post->tags;
+        $post->save();
+        return json_encode($post);
+    }
+
+    public function showCreateFeed($id){
         $post=Post::where('id',$id)->first();
         $post->increment("views");
         $tags=$post->tags;

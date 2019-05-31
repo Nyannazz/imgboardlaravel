@@ -34,5 +34,7 @@ Route::get('/users/{id}/{name}',function($id, $name){
 
 Route::get('/controller', "PagesController@index");
 
+Route::get('/posts/new','PostsController@getNew');
+Route::get('/posts/popular','PostsController@getPopular');
 Route::resource('posts','PostsController');
 /* ->middleware('cors'); */
