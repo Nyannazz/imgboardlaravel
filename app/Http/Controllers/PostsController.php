@@ -18,7 +18,7 @@ class PostsController extends Controller
      */
     public function index()
     {
-        $posts= Post::select('id','thumbnail')->paginate(10);//::orderBy("created_at","asc")->get();
+        $posts= Post::select('id','thumbnail')->paginate(40);//::orderBy("created_at","asc")->get();
         return $posts;
     }
 
@@ -72,6 +72,7 @@ class PostsController extends Controller
         //send response
         return json_encode($newPost);
     }
+    
 
     /**
      * Display the specified resource.
