@@ -12,20 +12,11 @@
 */
 
 Route::get('/', function () {
-    $name="heyho";
-    return view('about')->with('title',$name);
-});
-
-Route::get('/api', function () {
     return 'welcome';
+
 });
 
 
-
-Route::get('/about',function(){
-    $name="heyho";
-    return view('about')->with('title',$name);
-});
 
 Route::get('/users/{id}/{name}',function($id, $name){
     return 'searching for user: '.$name.'<br/> with an id of: '.$id; 
@@ -37,4 +28,5 @@ Route::get('/controller', "PagesController@index");
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
 Route::resource('posts','PostsController');
+Route::resource('comments','CommentsController');
 /* ->middleware('cors'); */

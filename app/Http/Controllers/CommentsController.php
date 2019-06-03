@@ -1,10 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Post;
+use App\Comment;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
-class Comment extends Controller
+class CommentsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +15,7 @@ class Comment extends Controller
      */
     public function index()
     {
-        //
+        return "search for comments";
     }
 
     /**
@@ -34,7 +36,21 @@ class Comment extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try{
+            $post=Post::findOrFail($request->postId);
+        
+            $comment=new Comment;
+            $comment->body=$request->body;
+    
+            $comment->save();
+    
+            $post->comments()->attach($comment);
+            return $post;
+        }
+        catch(ModelNotFoundException $e){
+            return "could not find a post with the id ".$request->postId;
+        }
+             
     }
 
     /**
@@ -45,7 +61,13 @@ class Comment extends Controller
      */
     public function show($id)
     {
-        //
+        try{
+            $post=Post::findOrFail($id);
+            $comments=$post->comments;
+            return $post;
+        }catch(ModelNotFoundException $e){
+            return "could not find a post with the id ".$id;
+        }
     }
 
     /**
