@@ -48,7 +48,7 @@ class CommentsController extends Controller
             return $post;
         }
         catch(ModelNotFoundException $e){
-            return "could not find a post with the id ".$request->postId;
+            return response("could not find post with the id ".$request->postId,404);
         }
              
     }
@@ -66,7 +66,7 @@ class CommentsController extends Controller
             $comments=$post->comments;
             return $post;
         }catch(ModelNotFoundException $e){
-            return "could not find a post with the id ".$id;
+            return response("could not find post with the id ".$id, 404);
         }
     }
 
