@@ -25,8 +25,17 @@ Route::get('/users/{id}/{name}',function($id, $name){
 
 Route::get('/controller', "PagesController@index");
 
+Route::post('/signup','RegistrationController@store');
+ 
+Route::post('/login', 'SessionsController@store');
+Route::get('/logout', 'SessionsController@destroy');
+
+
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
 Route::resource('posts','PostsController');
 Route::resource('comments','CommentsController');
 /* ->middleware('cors'); */
+/* Auth::routes(); */
+
+Route::get('/home', 'HomeController@index')->name('home');
