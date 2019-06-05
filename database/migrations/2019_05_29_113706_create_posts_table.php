@@ -19,11 +19,19 @@ class CreatePostsTable extends Migration
             $table->string('title');
             $table->string('resourceurl');
             $table->string('thumbnail');
-            $table->mediumText('body');
             $table->integer('upvotes');
             $table->integer('downvotes');
             $table->integer('views');
             $table->timestamps();
+        });
+
+        Schema::create('post_user', function (Blueprint $table) {
+            $table->integer('post_id')->unsigned()->index();
+            $table->integer('user_id')->unsigned()->index();
+            
+            $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
         });
     }
 

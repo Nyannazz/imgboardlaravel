@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Post;
 use App\Tag;
+use App\Comment;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Http\File;
 
@@ -23,11 +24,15 @@ class PostsController extends Controller
     }
 
     public function getNew(){
-        $posts= Post::orderBy("created_at","desc")->select('id','thumbnail')->get();
+        $posts= Post::orderBy("created_at","desc")->select('id','thumbnail')->paginate(40);;
         return $posts;
     }
     public function getPopular(){
-        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->get();
+        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);;
+        return $posts;
+    }
+    public function getByUser($id){
+        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);;
         return $posts;
     }
 
@@ -55,18 +60,28 @@ class PostsController extends Controller
         $newPost=new Post;
         $newPost->title=$request->title;
         $newPost->createdBy=$request->createdBy;
-        $newPost->body=$request->body;
         $newPost->resourceurl='http://image-board.local/storage/files/'.$request->file->hashName();
         $newPost->thumbnail='http://image-board.local/storage/thumbnails/thumbnail_'.$request->file->hashName();
 
         $newPost->save();
         // create tags
-        $tagArr=json_decode($request->tags);
-        $newTag=new Tag;
-        foreach($tagArr as $tag){
-            $currentTag=Tag::firstOrCreate(['name'=>$tag]);
-            $newPost->tags()->attach($currentTag);
+        if($request->tags){
+            $tagArr=json_decode($request->tags);
+            $newTag=new Tag;
+            foreach($tagArr as $tag){
+                $currentTag=Tag::firstOrCreate(['name'=>$tag]);
+                $newPost->tags()->attach($currentTag);
+            }
         }
+        //create comment and attach it to post if initial comment is received
+        if($request->body){
+            $newComment=new Comment;
+            $newComment->body=$request->body;
+    
+            $newComment->save();
+            $newPost->comments()->attach($newComment);
+        }
+        
 
 
         //send response
@@ -86,6 +101,7 @@ class PostsController extends Controller
         $post=Post::where('id',$id)->first();
         $post->increment("views");
         $tags=$post->tags;
+        $comments=$post->comments;
         $post->save();
         return json_encode($post);
     }
