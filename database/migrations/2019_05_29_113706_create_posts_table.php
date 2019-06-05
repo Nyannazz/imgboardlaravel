@@ -15,13 +15,13 @@ class CreatePostsTable extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->increments('id')->unique();
-            $table->integer('createdBy');
-            $table->string('title');
+            $table->integer('createdBy')->default('0');
+            $table->string('title')->nullable();
             $table->string('resourceurl');
             $table->string('thumbnail');
-            $table->integer('upvotes');
-            $table->integer('downvotes');
-            $table->integer('views');
+            $table->integer('upvotes')->default('0');
+            $table->integer('downvotes')->default('0');
+            $table->integer('views')->default('0');
             $table->timestamps();
         });
 

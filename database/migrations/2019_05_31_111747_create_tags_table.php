@@ -25,14 +25,14 @@ class CreateTagsTable extends Migration
             $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');
 
         });
-        Schema::create('tag_user', function (Blueprint $table) {
+        /* Schema::create('tag_user', function (Blueprint $table) {
             $table->integer('tag_id')->unsigned()->index();
             $table->integer('user_id')->unsigned()->index();
             
             $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-        });
+        }); */
     }
 
     /**

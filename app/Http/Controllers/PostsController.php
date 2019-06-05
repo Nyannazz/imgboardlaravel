@@ -78,8 +78,8 @@ class PostsController extends Controller
             $newComment=new Comment;
             $newComment->body=$request->body;
     
-            $newComment->save();
-            $newPost->comments()->attach($newComment);
+            //$newComment->save();
+            $newPost->comments()->save($newComment);
         }
         
 
