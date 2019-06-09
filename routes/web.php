@@ -26,7 +26,10 @@ Route::get('/users/{id}/{name}',function($id, $name){
 Route::get('/controller', "PagesController@index");
 
 Route::post('/signup','RegistrationController@store');
- 
+Route::get('/login', function(){
+    return "you are not logged in";
+})->name('login');
+
 Route::post('/login', 'SessionsController@store');
 Route::get('/logout', 'SessionsController@destroy');
 
@@ -39,3 +42,12 @@ Route::resource('comments','CommentsController');
 /* Auth::routes(); */
 
 Route::get('/home', 'HomeController@index')->name('home');
+
+
+/* protected routes */
+
+/* Route::group(['middleware'=>'auth'],function (){
+    Route::get('favorite/{postId}',['PostsController@addFavorite','HomeController@index']);
+}); */
+
+Route::get('favorite/{postId}','PostsController@addFavorite')->middleware('auth');

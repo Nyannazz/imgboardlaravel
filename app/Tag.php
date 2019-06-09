@@ -13,7 +13,7 @@ class Tag extends Model
     public function posts(){
         return $this->belongsToMany('App\Post')->withTimestamps();
     }
-    public function users(){
+    /* public function users(){
         return $this->belongsTo('App\User');
-    }
+    } */
 }

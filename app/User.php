@@ -42,14 +42,17 @@ class User extends Authenticatable
     {
         $this->attributes['password'] = bcrypt($password);
     }
-    public function tags(){
+    /* public function tags(){
         return $this->hasMany('App\Tag');
-    }
+    } */
 
     public function comments(){
         return $this->hasMany('App\Comment');
     }
     public function posts(){
         return $this->hasMany('App\Post');
+    }
+    public function favorite_posts(){
+        return $this->belongsToMany('App\Post');
     }
 }

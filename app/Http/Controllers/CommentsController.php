@@ -42,9 +42,9 @@ class CommentsController extends Controller
             $comment=new Comment;
             $comment->body=$request->body;
     
-            $comment->save();
+            /* $comment->save(); */
     
-            $post->comments()->attach($comment);
+            $post->comments()->save($comment);
             return $post;
         }
         catch(ModelNotFoundException $e){

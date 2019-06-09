@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Auth;
 use App\Post;
 use App\Tag;
 use App\Comment;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Http\File;
 
@@ -69,8 +71,10 @@ class PostsController extends Controller
             $tagArr=json_decode($request->tags);
             $newTag=new Tag;
             foreach($tagArr as $tag){
-                $currentTag=Tag::firstOrCreate(['name'=>$tag]);
-                $newPost->tags()->attach($currentTag);
+                if(strlen($tag)>0){
+                    $currentTag=Tag::firstOrCreate(['name'=>$tag]);
+                    $newPost->tags()->attach($currentTag);
+                }
             }
         }
         //create comment and attach it to post if initial comment is received
@@ -81,9 +85,6 @@ class PostsController extends Controller
             //$newComment->save();
             $newPost->comments()->save($newComment);
         }
-        
-
-
         //send response
         return json_encode($newPost);
     }
@@ -112,6 +113,27 @@ class PostsController extends Controller
         $tags=$post->tags;
         $post->save();
         return json_encode($post);
+    }
+
+    /* add and delete post to your favorites */
+    public function toggleFavorite($id){
+        try{
+            $userId=Auth::id();
+            $post=Post::findOrFail($id);
+            if(!$post->users_with_favorite->contains($id)){
+                $post->users_with_favorite()->attach($userId);
+                return "succesfully added";
+            }else{
+                $post->users_with_favorite()->detach($userId);
+                return "succesfully deleted";
+            }
+            
+        }
+        catch(ModelNotFoundException $e){
+            return "something went wrong";
+        }
+        
+
     }
 
     /**
