@@ -11,7 +11,7 @@ class Tag extends Model
     public $timestamps = false;
 
     public function posts(){
-        return $this->belongsToMany('App\Post')->withTimestamps();
+        return $this->belongsToMany('App\Post')/* ->withTimestamps() */;
     }
     /* public function users(){
         return $this->belongsTo('App\User');

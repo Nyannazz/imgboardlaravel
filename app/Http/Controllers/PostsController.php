@@ -10,6 +10,7 @@ use App\Comment;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Http\File;
+use JWTAuth;
 
 
 class PostsController extends Controller
@@ -36,6 +37,17 @@ class PostsController extends Controller
     public function getByUser($id){
         $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);;
         return $posts;
+    }
+    public function getByTag($name){
+        try{
+            $tags=Tag::where("name",$name)->firstOrFail()/* ->posts() */;
+            $posts=$tags->posts()->get();
+            return $posts;
+        }
+        catch(ModelNotFoundException $e){
+            return response("no tag found", 404);
+        }
+        
     }
 
     /**
@@ -114,7 +126,8 @@ class PostsController extends Controller
         $post->increment("views");
         $tags=$post->tags;
         $comments=$post->comments;
-        $userId=Auth::id();
+        /* $user = Auth::User(); */
+        $userId = Auth::id();
         if($userId){
             $hasFavorite=$post->users_with_favorite->contains($userId);
         }
@@ -135,12 +148,12 @@ class PostsController extends Controller
         try{
             $userId=Auth::id();
             $post=Post::findOrFail($id);
-            if(!$post->users_with_favorite->contains($id)){
+            if(!$post->users_with_favorite->contains($userId)){
                 $post->users_with_favorite()->attach($userId);
                 return "succesfully added";
             }else{
                 $post->users_with_favorite()->detach($userId);
-                return "succesfully deleted";
+                return "succesfully deleted".$userId;
             }
             
         }

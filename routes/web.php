@@ -27,7 +27,8 @@ Route::get('open', 'DataController@open');
 
 Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('user', 'UserController@getAuthenticatedUser'); 
-    Route::get('closed', 'DataController@closed');
+    Route::get('favorite/{postId}','PostsController@toggleFavorite');
+    Route::get('/logged/posts/{postId}','PostsController@getPost');
 });
 
 Route::get('/controller', "PagesController@index");
@@ -43,8 +44,8 @@ Route::get('/logout', 'SessionsController@destroy'); */
 
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
+Route::get('/posts/tag/{tagname}','PostsController@getByTag');
 
-Route::get('/logged/posts/{postId}','PostsController@getPost')->middleware('auth');
 
 Route::resource('posts','PostsController');
 Route::resource('comments','CommentsController');
@@ -53,4 +54,3 @@ Route::resource('comments','CommentsController');
 Route::get('/home', 'HomeController@index')->name('home');
 
 
-Route::get('favorite/{postId}','PostsController@addFavorite')->middleware('auth');
