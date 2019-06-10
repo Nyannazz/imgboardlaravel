@@ -103,6 +103,21 @@ class PostsController extends Controller
         $post->increment("views");
         $tags=$post->tags;
         $comments=$post->comments;
+  
+        $post->save();
+        return json_encode($post);
+    }
+    public function getPost($id)
+    {
+        
+        $post=Post::where('id',$id)->first();
+        $post->increment("views");
+        $tags=$post->tags;
+        $comments=$post->comments;
+        $userId=Auth::id();
+        if($userId){
+            $hasFavorite=$post->users_with_favorite->contains($userId);
+        }
         $post->save();
         return json_encode($post);
     }

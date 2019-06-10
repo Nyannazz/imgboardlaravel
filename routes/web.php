@@ -36,6 +36,9 @@ Route::get('/logout', 'SessionsController@destroy');
 
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
+
+Route::get('/logged/posts/{postId}','PostsController@getPost')->middleware('auth');
+
 Route::resource('posts','PostsController');
 Route::resource('comments','CommentsController');
 /* ->middleware('cors'); */
