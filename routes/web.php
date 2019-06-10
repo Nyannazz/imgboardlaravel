@@ -21,7 +21,14 @@ Route::get('/', function () {
 Route::get('/users/{id}/{name}',function($id, $name){
     return 'searching for user: '.$name.'<br/> with an id of: '.$id; 
 });
+Route::post('register', 'UserController@register');
+Route::post('login', 'UserController@authenticate');
+Route::get('open', 'DataController@open');
 
+Route::group(['middleware' => ['jwt.verify']], function() {
+    Route::get('user', 'UserController@getAuthenticatedUser'); 
+    Route::get('closed', 'DataController@closed');
+});
 
 Route::get('/controller', "PagesController@index");
 
@@ -30,8 +37,8 @@ Route::get('/login', function(){
     return "you are not logged in";
 })->name('login');
 
-Route::post('/login', 'SessionsController@store');
-Route::get('/logout', 'SessionsController@destroy');
+/* Route::post('/login', 'SessionsController@store');
+Route::get('/logout', 'SessionsController@destroy'); */
 
 
 Route::get('/posts/new','PostsController@getNew');
@@ -41,16 +48,9 @@ Route::get('/logged/posts/{postId}','PostsController@getPost')->middleware('auth
 
 Route::resource('posts','PostsController');
 Route::resource('comments','CommentsController');
-/* ->middleware('cors'); */
-/* Auth::routes(); */
+
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-
-/* protected routes */
-
-/* Route::group(['middleware'=>'auth'],function (){
-    Route::get('favorite/{postId}',['PostsController@addFavorite','HomeController@index']);
-}); */
 
 Route::get('favorite/{postId}','PostsController@addFavorite')->middleware('auth');
