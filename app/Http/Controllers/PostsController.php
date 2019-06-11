@@ -7,6 +7,7 @@ use Auth;
 use App\Post;
 use App\Tag;
 use App\Comment;
+use App\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Http\File;
@@ -27,15 +28,16 @@ class PostsController extends Controller
     }
 
     public function getNew(){
-        $posts= Post::orderBy("created_at","desc")->select('id','thumbnail')->paginate(40);;
+        /* $posts= Post::orderBy("created_at","desc")->select('id','thumbnail')->paginate(40); */
+        $posts=Post::where("id","2")->with("tags","comments.users","users")->get();
         return $posts;
     }
     public function getPopular(){
-        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);;
+        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);
         return $posts;
     }
     public function getByUser($id){
-        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);;
+        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);
         return $posts;
     }
     public function getByTag($name){
@@ -110,33 +112,36 @@ class PostsController extends Controller
      */
     public function show($id)
     {
-        
-        $post=Post::where('id',$id)->first();
-        $post->increment("views");
-        $tags=$post->tags;
-        $comments=$post->comments;
-  
-        $post->save();
-        return json_encode($post);
+        try{
+            $post=Post::with("tags","comments.users","users")->findOrFail($id);
+            $post->increment("views");
+
+            $post->save();
+            return json_encode($post);
+        }
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
     }
     public function getPost($id)
     {
         
-        $post=Post::where('id',$id)->first();
+        $post=Post::with("tags","comments.users","users")->findOrFail($id);
+
         $post->increment("views");
-        $tags=$post->tags;
-        $comments=$post->comments;
-        /* $user = Auth::User(); */
+        
         $userId = Auth::id();
         if($userId){
             $hasFavorite=$post->users_with_favorite->contains($userId);
         }
         $post->save();
-        return json_encode($post);
+        $postResponse=json_decode($post);
+        $postResponse->users_with_favorite=$hasFavorite;
+        return json_encode($postResponse);
     }
 
     public function showCreateFeed($id){
-        $post=Post::where('id',$id)->first();
+        $post=Post::findOrFail($id)->first();
         $post->increment("views");
         $tags=$post->tags;
         $post->save();

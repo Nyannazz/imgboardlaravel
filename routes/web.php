@@ -41,13 +41,15 @@ Route::get('/login', function(){
 /* Route::post('/login', 'SessionsController@store');
 Route::get('/logout', 'SessionsController@destroy'); */
 
-
+Route::get('/posts','PostsController@index');
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
 Route::get('/posts/tag/{tagname}','PostsController@getByTag');
 
+Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
 
-Route::resource('posts','PostsController');
+
+/* Route::resource('posts','PostsController'); */
 Route::resource('comments','CommentsController');
 
 

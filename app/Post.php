@@ -16,7 +16,7 @@ class Post extends Model
         return $this->hasMany('App\Comment');
     }
     public function users(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo('App\User')->select(array("id","name"));
     }
     public function users_with_favorite(){
         return $this->belongsToMany('App\User');
