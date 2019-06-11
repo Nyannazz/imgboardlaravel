@@ -15,7 +15,7 @@ class CreatePostsTable extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->increments('id')->unique();
-            $table->integer('createdBy')->default('0');
+            $table->integer('user_id')->default('0');
             $table->string('title')->nullable();
             $table->string('resourceurl');
             $table->string('thumbnail');
@@ -25,14 +25,14 @@ class CreatePostsTable extends Migration
             $table->timestamps();
         });
 
-        Schema::create('post_user', function (Blueprint $table) {
+        /* Schema::create('post_user', function (Blueprint $table) {
             $table->integer('post_id')->unsigned()->index();
             $table->integer('user_id')->unsigned()->index();
             
             $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-        });
+        }); */
     
 
     }

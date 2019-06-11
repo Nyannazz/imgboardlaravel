@@ -36,8 +36,9 @@ class PostsController extends Controller
         $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);
         return $posts;
     }
-    public function getByUser($id){
-        $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);
+    public function getByUser(){
+        $user=Auth::user();
+        $posts=$user->posts()->paginate(40);
         return $posts;
     }
     public function getByTag($name){
@@ -70,14 +71,19 @@ class PostsController extends Controller
      */
     public function store(Request $request)
     {
-        //Storage::put('files.jpeg', $request->file('file'));
+
         $path = $request->file->store('public/files');
         $thumbnail=Image::make($request->file)->fit(320,240)->encode('jpg')->save('storage/thumbnails/thumbnail_'.$request->file->hashName());
         $newPost=new Post;
         $newPost->title=$request->title;
-        $newPost->createdBy=$request->createdBy;
+        /* $newPost->user_id=$request->createdBy; */
         $newPost->resourceurl='http://image-board.local/storage/files/'.$request->file->hashName();
         $newPost->thumbnail='http://image-board.local/storage/thumbnails/thumbnail_'.$request->file->hashName();
+
+        $userId=Auth::id();
+        if($userId){
+            $newPost->user_id=$userId;
+        }
 
         $newPost->save();
         // create tags
