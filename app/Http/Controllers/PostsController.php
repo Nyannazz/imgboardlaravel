@@ -28,7 +28,6 @@ class PostsController extends Controller
     }
 
     public function getNew(){
-        /* $posts= Post::orderBy("created_at","desc")->select('id','thumbnail')->paginate(40); */
         $posts=Post::where("id","2")->with("tags","comments.users","users")->get();
         return $posts;
     }
@@ -41,10 +40,17 @@ class PostsController extends Controller
         $posts=$user->posts()->paginate(40);
         return $posts;
     }
+
+    public function getFavorites(){
+        $user=Auth::user();
+        $posts=$user->favorite_posts()->paginate(40, ["id","thumbnail"])/* ->paginate(40) */;
+        return $posts;
+    }
+
     public function getByTag($name){
         try{
             $tags=Tag::where("name",$name)->firstOrFail()/* ->posts() */;
-            $posts=$tags->posts()->get();
+            $posts=$tags->posts()->paginate(40);
             return $posts;
         }
         catch(ModelNotFoundException $e){

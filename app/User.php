@@ -58,6 +58,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany('App\Post');
     }
     public function favorite_posts(){
-        return $this->belongsToMany('App\Post');
+        return $this->belongsToMany('App\Post')/* ->select(['id','thumbnail']) */;
     }
 }
