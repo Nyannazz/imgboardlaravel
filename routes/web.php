@@ -18,9 +18,7 @@ Route::get('/', function () {
 
 
 
-Route::get('/users/{id}/{name}',function($id, $name){
-    return 'searching for user: '.$name.'<br/> with an id of: '.$id; 
-});
+
 Route::post('register', 'UserController@register');
 Route::post('login', 'UserController@authenticate');
 
@@ -49,6 +47,7 @@ Route::get('/posts','PostsController@index');
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
 Route::get('/posts/tag/{tagname}','PostsController@getByTag');
+Route::get('/posts/search/{tagname}','PostsController@search');
 Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
 
 Route::post('/posts','PostsController@store');
