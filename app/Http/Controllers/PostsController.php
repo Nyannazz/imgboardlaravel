@@ -27,10 +27,10 @@ class PostsController extends Controller
         return $posts;
     }
 
-    public function getNew(){
+    /* public function getNew(){
         $posts=Post::where("id","2")->with("tags","comments.users","users")->get();
         return $posts;
-    }
+    } */
     public function getPopular(){
         $posts= Post::orderBy("views","desc")->select('id','thumbnail')->paginate(40);
         return $posts;
@@ -60,21 +60,14 @@ class PostsController extends Controller
     }
 
     public function search($name){
-        try{
-            /* $tags=Tag::where("name",$name)->firstOrFail();
-            $posts=$tags->posts()->paginate(40); */
-            //split search into keywords
-            $keywords=explode(",",$name);
-            $posts=Post::with('tags')->whereHas('tags',function($q) use($keywords){
-                $q->whereIn('name', $keywords);
-            })->paginate(40);
-            
-            return $posts;
-        }
-        catch(ModelNotFoundException $e){
-            return response("no tag found", 404);
-        }
         
+        $keywords=explode(",",$name);
+        $posts=Post::with('tags')->whereHas('tags',function($q) use($keywords){
+            $q->whereIn('name', $keywords);
+        })->paginate(40, ["id","thumbnail"]);
+            
+        return $posts;
+  
     }
 
     
