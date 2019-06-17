@@ -43,7 +43,7 @@ class PostsController extends Controller
 
     public function getFavorites(){
         $user=Auth::user();
-        $posts=$user->favorite_posts()->paginate(40, ["id","thumbnail"])/* ->paginate(40) */;
+        $posts=$user->favorite_posts()->paginate(40, ["id","thumbnail"]);
         return $posts;
     }
 
@@ -60,11 +60,21 @@ class PostsController extends Controller
     }
 
     public function search($name){
-        
+        // return posts with at least 1 keyword matching
         $keywords=explode(",",$name);
         $posts=Post::with('tags')->whereHas('tags',function($q) use($keywords){
             $q->whereIn('name', $keywords);
         })->paginate(40, ["id","thumbnail"]);
+            
+        return $posts;
+  
+    }
+    public function searchStrict($name){
+        // return posts with all keywords matching
+        $keywords=explode(",",$name);
+        $posts=Post::with('tags')->whereHas('tags',function($q) use($keywords){
+            $q->whereIn('name', $keywords);
+        }, '=', count($keywords))->paginate(40, ["id","thumbnail"]);
             
         return $posts;
   
