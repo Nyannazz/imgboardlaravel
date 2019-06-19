@@ -11,21 +11,17 @@
 |
 */
 
-Route::get('/', function () {
-    return 'welcome';
-
-});
 
 
 
 
-Route::post('register', 'UserController@register');
-Route::post('login', 'UserController@authenticate');
+Route::post('api/register', 'UserController@register');
+Route::post('api/login', 'UserController@authenticate');
 
 
 Route::group(['middleware' => ['jwt.verify']], function() {
-    Route::get('user', 'UserController@getAuthenticatedUser'); 
-    Route::get('favorite/{postId}','PostsController@toggleFavorite')->where('id', '[0-9]+');
+    Route::get('/user', 'UserController@getAuthenticatedUser'); 
+    Route::get('/favorite/{postId}','PostsController@toggleFavorite')->where('id', '[0-9]+');
     Route::get('/logged/posts/{postId}','PostsController@getPost');
     Route::get('/logged/user','PostsController@getByUser');
     Route::post('/logged/posts','PostsController@store');
@@ -47,6 +43,7 @@ Route::get('/posts','PostsController@index');
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
 Route::get('/posts/tag/{tagname}','PostsController@getByTag');
+Route::get('/posts/search_strict/{tagname}','PostsController@searchStrict');
 Route::get('/posts/search/{tagname}','PostsController@search');
 Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
 
@@ -54,9 +51,8 @@ Route::post('/posts','PostsController@store');
 
 
 /* Route::resource('posts','PostsController'); */
-Route::resource('comments','CommentsController');
+Route::resource('/comments','CommentsController');
 
 
-Route::get('/home', 'HomeController@index')->name('home');
 
 
