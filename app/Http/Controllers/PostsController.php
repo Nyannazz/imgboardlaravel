@@ -8,6 +8,7 @@ use App\Post;
 use App\Tag;
 use App\Comment;
 use App\User;
+use App\Vote;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Http\File;
@@ -203,7 +204,48 @@ class PostsController extends Controller
             return "something went wrong";
         }
         
+    }
 
+    
+    public function vote($id,$myVote){
+        try{
+            $userId=Auth::id();
+            $post=Post::findOrFail($id);
+            
+            $vote=$post->votes()->where('user_id',$userId)->first();
+            if($vote){
+                if($vote->vote==$myVote){
+                    $vote->delete();
+                    $post->updateRating();
+                    return 'your vote was deleted';
+                }
+                else{
+                    $vote->vote=$myVote;
+                    $vote->save();
+                    $post->updateRating();
+                    return 'vote has been changed';
+                }
+                
+            }else{
+                $newVote=new Vote();
+                $newVote->vote=$myVote;
+                $newVote->user_id=$userId;
+                $newVote->post_id=$id;
+
+                $newVote->save();
+                $post->updateRating();
+                return 'added a new vote';
+            }
+        }
+        catch(ModelNotFoundException $e){
+            return "could not find post with this id";
+        }
+    }
+    public function upvote($id){
+        return $this->vote($id,1);
+    }
+    public function downvote($id){
+        return $this->vote($id,-1);
     }
 
     /**

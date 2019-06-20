@@ -24,4 +24,12 @@ class Post extends Model
     public function users_with_favorite(){
         return $this->belongsToMany('App\User');
     }
+
+    public function updateRating(){
+        $upvotes=Vote::where('post_id',$this->id)->where('vote','1')->count();
+        $downvotes=Vote::where('post_id',$this->id)->where('vote','-1')->count();
+        
+        $this->rating=$upvotes-$downvotes;
+        $this->save();
+    }
 }

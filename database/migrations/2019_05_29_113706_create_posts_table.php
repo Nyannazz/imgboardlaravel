@@ -19,8 +19,7 @@ class CreatePostsTable extends Migration
             $table->string('title')->nullable();
             $table->string('resourceurl');
             $table->string('thumbnail');
-            $table->integer('upvotes')->default('0');
-            $table->integer('downvotes')->default('0');
+            $table->integer('rating')->default('0');
             $table->integer('views')->default('0');
             $table->timestamps();
         });
