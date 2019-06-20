@@ -21,7 +21,7 @@ Route::post('login', 'UserController@authenticate');
 
 Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('/user', 'UserController@getAuthenticatedUser'); 
-    Route::get('/favorite/{postId}','PostsController@toggleFavorite')->where('id', '[0-9]+');
+    Route::get('/logged/favorite/{postId}','PostsController@toggleFavorite')->where('id', '[0-9]+');
     Route::get('/logged/posts/{postId}','PostsController@getPost');
     Route::get('/logged/user','PostsController@getByUser');
     Route::post('/logged/posts','PostsController@store');

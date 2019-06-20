@@ -169,12 +169,19 @@ class PostsController extends Controller
         $post->increment("views");
         
         $userId = Auth::id();
+        $userVote=0;
         if($userId){
             $hasFavorite=$post->users_with_favorite->contains($userId);
+            $vote=$post->votes()->where('user_id',$userId)->first();
+            if($vote){
+                $userVote=$vote->vote;
+            }
         }
+
         $post->save();
         $postResponse=json_decode($post);
         $postResponse->users_with_favorite=$hasFavorite;
+        $postResponse->vote=$userVote;
         return json_encode($postResponse);
     }
 
