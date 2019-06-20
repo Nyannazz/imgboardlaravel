@@ -130,7 +130,9 @@ class PostsController extends Controller
         if($request->body){
             $newComment=new Comment;
             $newComment->body=$request->body;
-    
+            if($userId){
+                $newComment->user_id=$userId;
+            }
             //$newComment->save();
             $newPost->comments()->save($newComment);
         }
@@ -148,7 +150,7 @@ class PostsController extends Controller
     public function show($id)
     {
         try{
-            $post=Post::with("tags","comments.users","users")->findOrFail($id);
+            $post=Post::with("tags","comments.user","user","votes")->findOrFail($id);
             $post->increment("views");
 
             $post->save();
@@ -161,7 +163,7 @@ class PostsController extends Controller
     public function getPost($id)
     {
         
-        $post=Post::with("tags","comments.users","users")->findOrFail($id);
+        $post=Post::with("tags","comments.user","user")->findOrFail($id);
 
         $post->increment("views");
         

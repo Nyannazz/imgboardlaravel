@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use Auth;
+use JWTAuth;
 use App\Post;
 use App\Comment;
 use App\User;

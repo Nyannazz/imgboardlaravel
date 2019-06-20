@@ -15,8 +15,8 @@
 
 
 
-Route::post('api/register', 'UserController@register');
-Route::post('api/login', 'UserController@authenticate');
+Route::post('register', 'UserController@register');
+Route::post('login', 'UserController@authenticate');
 
 
 Route::group(['middleware' => ['jwt.verify']], function() {
@@ -27,6 +27,8 @@ Route::group(['middleware' => ['jwt.verify']], function() {
     Route::post('/logged/posts','PostsController@store');
     Route::get('/logged/favorites','PostsController@getFavorites');
     Route::post('/logged/comments','CommentsController@store');
+    Route::get('/logged/like/${postId}','PostsController@upvote');
+    Route::get('/logged/dislike/${postId}','PostsController@downvote');
 
 });
 
