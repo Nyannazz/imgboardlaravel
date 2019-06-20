@@ -26,6 +26,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('/logged/user','PostsController@getByUser');
     Route::post('/logged/posts','PostsController@store');
     Route::get('/logged/favorites','PostsController@getFavorites');
+    Route::post('/logged/comments','CommentsController@store');
 
 });
 
