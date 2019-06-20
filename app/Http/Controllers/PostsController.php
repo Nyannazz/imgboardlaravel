@@ -224,13 +224,13 @@ class PostsController extends Controller
                 if($vote->vote==$myVote){
                     $vote->delete();
                     $post->updateRating();
-                    return 'your vote was deleted';
+                    return '0';
                 }
                 else{
                     $vote->vote=$myVote;
                     $vote->save();
                     $post->updateRating();
-                    return 'vote has been changed';
+                    return $myVote;
                 }
                 
             }else{
@@ -241,7 +241,7 @@ class PostsController extends Controller
 
                 $newVote->save();
                 $post->updateRating();
-                return 'added a new vote';
+                return $myVote;
             }
         }
         catch(ModelNotFoundException $e){
