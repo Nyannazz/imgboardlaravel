@@ -8,6 +8,7 @@ use App\Post;
 use App\Tag;
 use App\Comment;
 use App\User;
+use App\Vote;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Http\File;
@@ -130,7 +131,9 @@ class PostsController extends Controller
         if($request->body){
             $newComment=new Comment;
             $newComment->body=$request->body;
-    
+            if($userId){
+                $newComment->user_id=$userId;
+            }
             //$newComment->save();
             $newPost->comments()->save($newComment);
         }
@@ -148,7 +151,7 @@ class PostsController extends Controller
     public function show($id)
     {
         try{
-            $post=Post::with("tags","comments.users","users")->findOrFail($id);
+            $post=Post::with("tags","comments.user","user","votes")->findOrFail($id);
             $post->increment("views");
 
             $post->save();
@@ -161,17 +164,24 @@ class PostsController extends Controller
     public function getPost($id)
     {
         
-        $post=Post::with("tags","comments.users","users")->findOrFail($id);
+        $post=Post::with("tags","comments.user","user")->findOrFail($id);
 
         $post->increment("views");
         
         $userId = Auth::id();
+        $userVote=0;
         if($userId){
             $hasFavorite=$post->users_with_favorite->contains($userId);
+            $vote=$post->votes()->where('user_id',$userId)->first();
+            if($vote){
+                $userVote=$vote->vote;
+            }
         }
+
         $post->save();
         $postResponse=json_decode($post);
         $postResponse->users_with_favorite=$hasFavorite;
+        $postResponse->vote=$userVote;
         return json_encode($postResponse);
     }
 
@@ -201,7 +211,48 @@ class PostsController extends Controller
             return "something went wrong";
         }
         
+    }
 
+    
+    public function vote($id,$myVote){
+        try{
+            $userId=Auth::id();
+            $post=Post::findOrFail($id);
+            
+            $vote=$post->votes()->where('user_id',$userId)->first();
+            if($vote){
+                if($vote->vote==$myVote){
+                    $vote->delete();
+                    $post->updateRating();
+                    return '0';
+                }
+                else{
+                    $vote->vote=$myVote;
+                    $vote->save();
+                    $post->updateRating();
+                    return $myVote;
+                }
+                
+            }else{
+                $newVote=new Vote();
+                $newVote->vote=$myVote;
+                $newVote->user_id=$userId;
+                $newVote->post_id=$id;
+
+                $newVote->save();
+                $post->updateRating();
+                return $myVote;
+            }
+        }
+        catch(ModelNotFoundException $e){
+            return "could not find post with this id";
+        }
+    }
+    public function upvote($id){
+        return $this->vote($id,1);
+    }
+    public function downvote($id){
+        return $this->vote($id,-1);
     }
 
     /**

@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use Auth;
+use JWTAuth;
 use App\Post;
 use App\Comment;
 use App\User;
@@ -42,8 +44,11 @@ class CommentsController extends Controller
         
             $comment=new Comment;
             $comment->body=$request->body;
-    
-            /* $comment->save(); */
+            
+            $userId=Auth::id();
+            if($userId){
+                $comment->user_id=$userId;
+            }
     
             $post->comments()->save($comment);
             return $post;
@@ -53,6 +58,8 @@ class CommentsController extends Controller
         }
              
     }
+
+
 
     /**
      * Display the specified resource.
