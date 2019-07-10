@@ -140,7 +140,21 @@ class PostsController extends Controller
         //send response
         return json_encode($newPost);
     }
-    
+
+
+    /* create testdata */
+    public function testData(){
+        $json = json_decode(file_get_contents("https://picsum.photos/v2/list"), true);
+        $one = $json[7];
+        $dlUrl = $one["download_url"];
+        /* $imageFile=file_get_contents($dlUrl); */
+        $name = substr($dlUrl, strrpos($dlUrl, '/') + 1);
+        /* $storeItem=Storage::put($name.".jpg", $imageFile, 'public'); */
+        file_put_contents(public_path("storage/files/".$name.".jpg"),file_get_contents($dlUrl));
+        /* Storage::putFileAs('public/files', $imageFile, $name.".jpg"); */
+        /* return $imageFile; */
+        return $name;
+    }
 
     /**
      * Display the specified resource.
@@ -154,8 +168,16 @@ class PostsController extends Controller
             $post=Post::with("tags","comments.user","user","votes")->findOrFail($id);
             $post->increment("views");
 
+            $prev=$post->previousPost();
+            $next=$post->nextPost();
             $post->save();
-            return json_encode($post);
+
+            $finishedPost=new \stdClass();
+            $finishedPost->post=$post;
+            $finishedPost->prev=$prev;
+            $finishedPost->next=$next;
+
+            return json_encode($finishedPost);
         }
         catch(ModelNotFoundException $e){
             return response("could not find post with the id ".$id, 404);
@@ -163,26 +185,36 @@ class PostsController extends Controller
     }
     public function getPost($id)
     {
-        
-        $post=Post::with("tags","comments.user","user")->findOrFail($id);
+        try{
+            $post=Post::with("tags","comments.user","user","nextPost","previosPost")->findOrFail($id);
 
-        $post->increment("views");
-        
-        $userId = Auth::id();
-        $userVote=0;
-        if($userId){
-            $hasFavorite=$post->users_with_favorite->contains($userId);
-            $vote=$post->votes()->where('user_id',$userId)->first();
-            if($vote){
-                $userVote=$vote->vote;
+            /* $prevPost=Post::where('id', '<' ,$id)->select('id','thumbnail')->max('id');
+            $nextPost=Post::where('id', '>' ,$id)->select('id','thumbnail')->min('id'); */
+
+            $post->increment("views");
+            
+            $userId = Auth::id();
+            $userVote=0;
+            if($userId){
+                $hasFavorite=$post->users_with_favorite->contains($userId);
+                $vote=$post->votes()->where('user_id',$userId)->first();
+                if($vote){
+                    $userVote=$vote->vote;
+                }
             }
+    
+            $post->save();
+            $postResponse=json_decode($post);
+            $postResponse->users_with_favorite=$hasFavorite;
+            $postResponse->vote=$userVote;
+            $postResponse->prev=$prevPost;
+            $postResponse->next=$nextPost;
+            return json_encode($postResponse);
         }
-
-        $post->save();
-        $postResponse=json_decode($post);
-        $postResponse->users_with_favorite=$hasFavorite;
-        $postResponse->vote=$userVote;
-        return json_encode($postResponse);
+        
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
     }
 
     public function showCreateFeed($id){

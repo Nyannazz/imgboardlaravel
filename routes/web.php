@@ -42,6 +42,11 @@ Route::get('/login', function(){
 /* Route::post('/login', 'SessionsController@store');
 Route::get('/logout', 'SessionsController@destroy'); */
 
+
+/* route to fill db */
+Route::get('/testdata','PostsController@testData');
+
+
 Route::get('/posts','PostsController@index');
 Route::get('/posts/new','PostsController@getNew');
 Route::get('/posts/popular','PostsController@getPopular');
