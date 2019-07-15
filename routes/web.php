@@ -54,6 +54,8 @@ Route::get('/posts/tag/{tagname}','PostsController@getByTag');
 Route::get('/posts/search_strict/{tagname}','PostsController@searchStrict');
 Route::get('/posts/search/{tagname}','PostsController@search');
 Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
+Route::get('/posts/showcreatefeed/{id}','PostsController@showCreateFeed')->where('id', '[0-9]+');
+
 
 Route::post('/posts','PostsController@store');
 

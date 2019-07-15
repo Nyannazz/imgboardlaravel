@@ -218,11 +218,24 @@ class PostsController extends Controller
     }
 
     public function showCreateFeed($id){
-        $post=Post::findOrFail($id)->first();
-        $post->increment("views");
-        $tags=$post->tags;
-        $post->save();
-        return json_encode($post);
+        try{
+            $post=Post::with("tags","comments.user","user","votes")->findOrFail($id);
+            $post->increment("views");
+
+            $prev=$post->previousPost()->take(10)->get();
+            $next=$post->nextPost()->paginate(40);
+            $post->save();
+
+            $finishedPost=new \stdClass();
+            $finishedPost->post=$post;
+            $finishedPost->prev=$prev;
+            $finishedPost->next=$next;
+
+            return json_encode($finishedPost);
+        }
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
     }
 
     /* add and delete post to your favorites */
