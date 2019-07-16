@@ -12,7 +12,9 @@
 */
 
 
-
+Route::get('/',function(){
+    return view('index',['apiName'=>'Baizuo Imageboard']);
+});
 
 
 Route::post('register', 'UserController@register');

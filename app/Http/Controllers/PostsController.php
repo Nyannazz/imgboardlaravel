@@ -168,16 +168,16 @@ class PostsController extends Controller
             $post=Post::with("tags","comments.user","user","votes")->findOrFail($id);
             $post->increment("views");
 
-            $prev=$post->previousPost();
-            $next=$post->nextPost();
+            $prev=$post->previousPost()->first();
+            $next=$post->nextPost()->first();
             $post->save();
 
+            $post=json_decode($post);
             $finishedPost=new \stdClass();
-            $finishedPost->post=$post;
-            $finishedPost->prev=$prev;
-            $finishedPost->next=$next;
+            $post->prev=$prev;
+            $post->next=$next;
 
-            return json_encode($finishedPost);
+            return json_encode($post);
         }
         catch(ModelNotFoundException $e){
             return response("could not find post with the id ".$id, 404);
@@ -186,10 +186,10 @@ class PostsController extends Controller
     public function getPost($id)
     {
         try{
-            $post=Post::with("tags","comments.user","user","nextPost","previosPost")->findOrFail($id);
+            $post=Post::with("tags","comments.user","user")->findOrFail($id);
 
-            /* $prevPost=Post::where('id', '<' ,$id)->select('id','thumbnail')->max('id');
-            $nextPost=Post::where('id', '>' ,$id)->select('id','thumbnail')->min('id'); */
+            $prev=$post->previousPost()->first();
+            $next=$post->nextPost()->first();
 
             $post->increment("views");
             
@@ -207,8 +207,8 @@ class PostsController extends Controller
             $postResponse=json_decode($post);
             $postResponse->users_with_favorite=$hasFavorite;
             $postResponse->vote=$userVote;
-            $postResponse->prev=$prevPost;
-            $postResponse->next=$nextPost;
+            $postResponse->prev=$prev;
+            $postResponse->next=$next;
             return json_encode($postResponse);
         }
         
