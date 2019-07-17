@@ -42,6 +42,43 @@ class PostsController extends Controller
         return $posts;
     }
 
+    public function showUserPost($id)
+    {
+        try{
+            $user=Auth::user();
+            if($user){
+                $post=$user->posts()->with("tags","comments.user","user")->findOrFail($id);
+                $prev=$post->previousPost()->first();
+                $next=$post->nextPost()->first();
+    
+                $post->increment("views");
+                
+                $userId = $user->id;
+                $userVote=0;
+                if($userId){
+                    $hasFavorite=$post->users_with_favorite->contains($userId);
+                    $vote=$post->votes()->where('user_id',$userId)->first();
+                    if($vote){
+                        $userVote=$vote->vote;
+                    }
+                }
+        
+                $post->save();
+                $postResponse=json_decode($post);
+                $postResponse->users_with_favorite=$hasFavorite;
+                $postResponse->vote=$userVote;
+                $postResponse->prev=$prev;
+                $postResponse->next=$next;
+                return json_encode($postResponse);
+            }
+
+        }
+        
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
+    }
+
     public function getFavorites(){
         $user=Auth::user();
         $posts=$user->favorite_posts()->paginate(40, ["id","thumbnail"]);
@@ -80,7 +117,23 @@ class PostsController extends Controller
         return $posts;
   
     }
-
+    public function showInSearch($name){
+        
+        try{
+            $id=2;
+            // return posts with at least 1 keyword matching
+            $keywords=explode(",",$name);
+            $posts=Post::with('tags')->whereHas('tags',function($q) use($keywords){
+                $q->whereIn('name', $keywords);
+            })->findOrFail($id);
+            
+        return $posts;
+        }
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
+  
+    }
     
 
     /**
@@ -183,7 +236,7 @@ class PostsController extends Controller
             return response("could not find post with the id ".$id, 404);
         }
     }
-    public function getPost($id)
+    public function showPost($id)
     {
         try{
             $post=Post::with("tags","comments.user","user")->findOrFail($id);
@@ -216,6 +269,42 @@ class PostsController extends Controller
             return response("could not find post with the id ".$id, 404);
         }
     }
+
+    public function showFavoritePost($id)
+    {
+        try{
+            $post=Post::with("tags","comments.user","user")->findOrFail($id);
+
+            $prev=$post->previousPost()->first();
+            $next=$post->nextPost()->first();
+
+            $post->increment("views");
+            
+            $userId = Auth::id();
+            $userVote=0;
+            if($userId){
+                $hasFavorite=$post->users_with_favorite->contains($userId);
+                $vote=$post->votes()->where('user_id',$userId)->first();
+                if($vote){
+                    $userVote=$vote->vote;
+                }
+            }
+    
+            $post->save();
+            $postResponse=json_decode($post);
+            $postResponse->users_with_favorite=$hasFavorite;
+            $postResponse->vote=$userVote;
+            $postResponse->prev=$prev;
+            $postResponse->next=$next;
+            return json_encode($postResponse);
+        }
+        
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
+    }
+
+    
 
     public function showCreateFeed($id){
         try{
