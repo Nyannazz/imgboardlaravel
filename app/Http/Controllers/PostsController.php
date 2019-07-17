@@ -47,10 +47,62 @@ class PostsController extends Controller
         try{
             $user=Auth::user();
             if($user){
-                $post=$user->posts()->with("tags","comments.user","user")->findOrFail($id);
-                $prev=$post->previousPost()->first();
-                $next=$post->nextPost()->first();
-    
+                /* $post=$user->posts()->with("tags","comments.user","user")->findOrFail($id);
+                return $post; */
+                $posts=$user->posts()->with("tags","comments.user","user")->get();
+                $prev=$posts->where('id', '>' ,$id)->first()->only("id","thumbnail");
+                $next=$posts->where('id', '<' ,$id)->first()->only('id','thumbnail');
+                return static::where('id', '<' ,$this->id)->select('id','thumbnail')->orderBy('id','desc')/* ->first() */;
+                $post=$posts->where("id",$id);
+                return json_encode([$prev,$post]);
+                $post=$posts->findOrFail($id);
+                $prev=$posts->where('id', '>' ,$id)->select('id','thumbnail')->first();
+                $next=$posts->where('id', '<' ,$id)->select('id','thumbnail')->orderBy('id','desc')->first();
+                $post->increment("views");
+                
+                $userId = $user->id;
+                $userVote=0;
+                if($userId){
+                    $hasFavorite=$post->users_with_favorite->contains($userId);
+                    $vote=$post->votes()->where('user_id',$userId)->first();
+                    if($vote){
+                        $userVote=$vote->vote;
+                    }
+                }
+        
+                $post->save();
+                $postResponse=json_decode($post);
+                $postResponse->users_with_favorite=$hasFavorite;
+                $postResponse->vote=$userVote;
+                $postResponse->prev=$prev;
+                $postResponse->next=$next;
+                return json_encode($postResponse);
+            }
+
+        }
+        
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
+    }
+
+    public function testUser($id)
+    {
+        try{
+            $user=User::findOrFail(4);
+            if($user){
+                /* $post=$user->posts()->with("tags","comments.user","user")->findOrFail($id);
+                return $post; */
+                $posts=$user->posts()->with("tags","comments.user","user")->get();
+                $prev=$posts->where('id', '<' ,$id)->last();
+                $next=$posts->where('id', '>' ,$id)->first();
+                $prev=$prev? $prev->only('id','thumbnail') : null;
+                $next=$next? $next->only('id','thumbnail') : null;
+                $post=$posts->where("id",$id);
+                return json_encode([$prev,$next]);
+                $post=$posts->findOrFail($id);
+                $prev=$posts->where('id', '>' ,$id)->select('id','thumbnail')->first();
+                $next=$posts->where('id', '<' ,$id)->select('id','thumbnail')->orderBy('id','desc')->first();
                 $post->increment("views");
                 
                 $userId = $user->id;
