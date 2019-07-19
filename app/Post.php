@@ -25,6 +25,14 @@ class Post extends Model
         return $this->belongsToMany('App\User');
     }
 
+    public function nextPost(){
+        return static::where('id', '>' ,$this->id)->select('id','thumbnail')/* ->first() */;
+    }
+    public function previousPost(){
+        return static::where('id', '<' ,$this->id)->select('id','thumbnail')->orderBy('id','desc')/* ->first() */;
+
+    }
+
     public function updateRating(){
         $upvotes=Vote::where('post_id',$this->id)->where('vote','1')->count();
         $downvotes=Vote::where('post_id',$this->id)->where('vote','-1')->count();
