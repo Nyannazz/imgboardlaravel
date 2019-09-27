@@ -26,10 +26,10 @@ class Post extends Model
     }
 
     public function nextPost(){
-        return static::where('id', '>' ,$this->id)->select('id','thumbnail')/* ->first() */;
+        return static::where('id', '>' ,$this->id)->select('id','thumbnail');
     }
     public function previousPost(){
-        return static::where('id', '<' ,$this->id)->select('id','thumbnail')->orderBy('id','desc')/* ->first() */;
+        return static::where('id', '<' ,$this->id)->select('id','thumbnail')->orderBy('id','desc');
 
     }
 
