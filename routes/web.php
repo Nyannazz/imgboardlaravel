@@ -62,8 +62,8 @@ Route::get('/posts/insearch/{tagname}','PostsController@showInSearch');
 
 Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
 
-Route::get('showcreatefeed/next/posts/{id}','PostsController@showNext')->where('id', '[0-9]+');
-Route::get('showcreatefeed/previous/posts/{id}','PostsController@showPrevious')->where('id', '[0-9]+');
+Route::get('/nextpost/{id}','PostsController@showNextPost')->where('id', '[0-9]+');
+Route::get('/prevpost/{id}','PostsController@showPrevPost')->where('id', '[0-9]+');
 
 
 Route::get('/test/{id}','PostsController@testUser')->where('id', '[0-9]+');

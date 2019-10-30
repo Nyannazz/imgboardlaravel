@@ -19,7 +19,7 @@ use JWTAuth;
 
 class PostsController extends Controller
 {
-    private $postPerPage=10;
+    private $postPerPage=40;
 
     /**
      * Display a listing of the resource.
@@ -48,7 +48,6 @@ class PostsController extends Controller
                 $posts=$user->posts()->with("tags","comments.user","user")->get();
                 $prev=$posts->where('id', '>' ,$id)/* ->first()->only("id","thumbnail") */;
                 $next=$posts->where('id', '<' ,$id)/* ->first()->only('id','thumbnail') */;
-                //return static::where('id', '<' ,$this->id)->select('id','thumbnail')->orderBy('id','desc')/* ->first() */;
                 $post=$posts->where("id",$id);
                 return json_encode([$prev,$post]);
                 $post=$posts->findOrFail($id);
@@ -82,50 +81,7 @@ class PostsController extends Controller
         }
     }
 
-    public function testUser($id)
-    {
-        try{
-            $user=User::findOrFail(4);
-            if($user){
-                /* $post=$user->posts()->with("tags","comments.user","user")->findOrFail($id);
-                return $post; */
-                $posts=$user->posts()->with("tags","comments.user","user")->get();
-                $prev=$posts->where('id', '<' ,$id)->last();
-                $next=$posts->where('id', '>' ,$id)->first();
-                $prev=$prev? $prev->only('id','thumbnail') : null;
-                $next=$next? $next->only('id','thumbnail') : null;
-                $post=$posts->where("id",$id);
-                return json_encode([$prev,$next]);
-                $post=$posts->findOrFail($id);
-                $prev=$posts->where('id', '>' ,$id)->select('id','thumbnail')->first();
-                $next=$posts->where('id', '<' ,$id)->select('id','thumbnail')->orderBy('id','desc')->first();
-                $post->increment("views");
-                
-                $userId = $user->id;
-                $userVote=0;
-                if($userId){
-                    $hasFavorite=$post->users_with_favorite->contains($userId);
-                    $vote=$post->votes()->where('user_id',$userId)->first();
-                    if($vote){
-                        $userVote=$vote->vote;
-                    }
-                }
-        
-                $post->save();
-                $postResponse=json_decode($post);
-                $postResponse->users_with_favorite=$hasFavorite;
-                $postResponse->vote=$userVote;
-                $postResponse->prev=$prev;
-                $postResponse->next=$next;
-                return json_encode($postResponse);
-            }
-
-        }
-        
-        catch(ModelNotFoundException $e){
-            return response("could not find post with the id ".$id, 404);
-        }
-    }
+  
 
     public function getFavorites(){
         $user=Auth::user();
@@ -184,15 +140,7 @@ class PostsController extends Controller
     } */
     
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -207,7 +155,6 @@ class PostsController extends Controller
         $thumbnail=Image::make($request->file)->fit(320,240)->encode('jpg')->save('storage/thumbnails/thumbnail_'.$request->file->hashName());
         $newPost=new Post;
         $newPost->title=$request->title;
-        /* $newPost->user_id=$request->createdBy; */
         $newPost->resourceurl='http://image-board.local/storage/files/'.$request->file->hashName();
         $newPost->thumbnail='http://image-board.local/storage/thumbnails/thumbnail_'.$request->file->hashName();
 
@@ -235,7 +182,6 @@ class PostsController extends Controller
             if($userId){
                 $newComment->user_id=$userId;
             }
-            //$newComment->save();
             $newPost->comments()->save($newComment);
         }
         //send response
@@ -253,12 +199,13 @@ class PostsController extends Controller
      */
     public function show($id)
     {
+        /* Function for not logged in users */
         try{
-            $post=Post::with("tags","comments.user","user","votes")->findOrFail($id);
+            $post=Post::with("tags","comments.user","user")->findOrFail($id);
             $post->increment("views");
             /* TODO MERGE 3 Queries into 1 */
-            $prev=$post->previousPost()->take(2)->get();
-            $next=$post->nextPost()->take(2)->get();
+            $prev=$post->previousPost()->take(2)->select('id','thumbnail')->get();
+            $next=$post->nextPost()->take(2)->select('id','thumbnail')->get();
             $post->save();
 
             $post=json_decode($post);
@@ -271,7 +218,9 @@ class PostsController extends Controller
             return response("could not find post with the id ".$id, 404);
         }
     }
-    public function showPost($id)
+
+
+    /* public function showPost($id)
     {
         try{
             $post=Post::with("tags","comments.user","user")->findOrFail($id);
@@ -300,6 +249,64 @@ class PostsController extends Controller
             return json_encode($postResponse);
         }
         
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
+    } */
+
+
+    public function showPost($id)
+    {
+        /* Function for logged in users */
+        if(Auth::id()){
+            try{
+                $post=Post::with("tags","comments.user","user", "votes")->findOrFail($id);
+    
+                $prev=$post->previousPost()->take(2)->get();
+                $next=$post->nextPost()->take(2)->get();
+    
+                $post->increment("views");
+                $post->save();
+                $postResponse=json_decode($post);
+    
+                $hasFavorite=$post->users_with_favorite->contains($userId);
+                
+                $vote=$post->votes()->where('user_id',$userId)->first();
+                if($vote){
+                    $postResponse->vote=$vote->vote;
+                }
+        
+                
+                $postResponse->users_with_favorite=$hasFavorite;
+                $postResponse->prev=$prev;
+                $postResponse->next=$next;
+                return json_encode($postResponse);
+            }
+            
+            catch(ModelNotFoundException $e){
+                return response("could not find post with the id ".$id, 404);
+            }
+        }
+        /* if auth failed logged user out */
+        return response("looks like you have been logged out ".$id, 403);
+    }
+
+    public function showNextPost($id){
+        /* only update the next posts since previous posts are already in frontend */
+        try{
+            $nextPost=Post::where("id", ">", $id)->with("tags","comments.user","user", "votes")->first();
+            $postPreview=$next=$post->nextPost()->take(2)->select('id','thumbnail')->get();
+            return $nextPosts;
+        }
+        catch(ModelNotFoundException $e){
+            return response("could not find a post after ".$id, 404);
+        }
+    }
+
+    public function showPrevPost($id){
+        try{
+
+        }
         catch(ModelNotFoundException $e){
             return response("could not find post with the id ".$id, 404);
         }
