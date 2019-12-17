@@ -48,22 +48,23 @@ Route::get('/logout', 'SessionsController@destroy'); */
 
 
 /* route to fill db */
-Route::get('/testdata','PostsController@testData');
 
 
 Route::get('/posts','PostsController@index');
-Route::get('/posts/new','PostsController@getNew');
-Route::get('/posts/popular','PostsController@getPopular');
+Route::get('/postswithoffset/{offsetId?}','PostsController@index');
+Route::get('/posts/new','PostsController@index');
+Route::get('/posts/popular','PostsController@index');
 
 Route::get('/posts/tag/{tagname}','PostsController@getByTag');
 Route::get('/posts/search_strict/{tagname}','PostsController@searchStrict');
 Route::get('/posts/search/{tagname}','PostsController@search');
 Route::get('/posts/insearch/{tagname}','PostsController@showInSearch');
 
-Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
-
+Route::get('/postwithpreview/{id}','PostsController@showWithPreview')->where('id', '[0-9]+');
 Route::get('/nextpost/{id}','PostsController@showNextPost')->where('id', '[0-9]+');
 Route::get('/prevpost/{id}','PostsController@showPrevPost')->where('id', '[0-9]+');
+
+Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
 
 
 Route::get('/test/{id}','PostsController@testUser')->where('id', '[0-9]+');

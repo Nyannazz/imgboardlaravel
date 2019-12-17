@@ -19,22 +19,37 @@ use JWTAuth;
 
 class PostsController extends Controller
 {
-    private $postPerPage=40;
+    private $postsPerPage=10;
 
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($offsetId=null)
     {
-        $posts= Post::select('id','thumbnail')->paginate($this->postPerPage);
+        $pageWithPost=1;
+        if($offsetId){
+            $postPos=Post::where('id', '<=' ,$offsetId)->count();
+            $pageWithPost=ceil($postPos/$this->postsPerPage);
+        }
+        $posts= Post::paginate($this->postsPerPage, ['id','thumbnail'],'page', $pageWithPost);
         return $posts;
     }
 
-    public function getByUser(){
+
+
+
+    public function getByUser($offsetId=null){
         $user=Auth::user();
-        $posts=$user->posts()->paginate($this->postPerPage);
+
+        $pageWithPost=1;
+        if($offsetId){
+            $postPos=$user->posts()->where('id', '<=' ,$offsetId)->count();
+            $pageWithPost=ceil($postPos/$this->postsPerPage);
+        }
+
+        $posts=$user->posts()->paginate($this->postsPerPage, ['id','thumbnail'],'page', $pageWithPost);
         return $posts;
     }
 
@@ -85,14 +100,14 @@ class PostsController extends Controller
 
     public function getFavorites(){
         $user=Auth::user();
-        $posts=$user->favorite_posts()->paginate($this->postPerPage, ["id","thumbnail"]);
+        $posts=$user->favorite_posts()->paginate($this->postsPerPage, ["id","thumbnail"]);
         return $posts;
     }
 
     public function getByTag($name){
         try{
             $tags=Tag::where("name",$name)->firstOrFail()/* ->posts() */;
-            $posts=$tags->posts()->paginate($this->postPerPage);
+            $posts=$tags->posts()->paginate($this->postsPerPage);
             return $posts;
         }
         catch(ModelNotFoundException $e){
@@ -197,7 +212,7 @@ class PostsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function showWithPreview($id)
     {
         /* Function for not logged in users */
         try{
@@ -219,8 +234,45 @@ class PostsController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        /* Function for not logged in users */
+        try{
+            $post=Post::with("tags","comments.user","user")->findOrFail($id);
+            
+            $post->increment("views");
+            $post->save();
 
-    /* public function showPost($id)
+            return $post;
+        }
+        catch(ModelNotFoundException $e){
+            return response("could not find post with the id ".$id, 404);
+        }
+    }
+
+
+
+  
+
+    private function getUserRating($post, $id){
+        $userVote=0;
+        $hasFavorite=false;
+        if($userId){
+            $hasFavorite=$post->users_with_favorite->contains($userId);
+            $vote=$post->votes()->where('user_id',$userId)->first();
+            if($vote){
+                $userVote=$vote->vote;
+            }
+        }
+        $postResponse=json_decode($post);
+        $postResponse->users_with_favorite=$hasFavorite;
+        $postResponse->vote=$userVote;
+        
+        return $postResponse;
+    }
+
+
+    public function showPost($id)
     {
         try{
             $post=Post::with("tags","comments.user","user")->findOrFail($id);
@@ -229,9 +281,11 @@ class PostsController extends Controller
             $next=$post->nextPost()->take(2)->get();
 
             $post->increment("views");
-            
+            $post->save();
+
             $userId = Auth::id();
             $userVote=0;
+            $hasFavorite=false;
             if($userId){
                 $hasFavorite=$post->users_with_favorite->contains($userId);
                 $vote=$post->votes()->where('user_id',$userId)->first();
@@ -240,7 +294,6 @@ class PostsController extends Controller
                 }
             }
     
-            $post->save();
             $postResponse=json_decode($post);
             $postResponse->users_with_favorite=$hasFavorite;
             $postResponse->vote=$userVote;
@@ -252,51 +305,31 @@ class PostsController extends Controller
         catch(ModelNotFoundException $e){
             return response("could not find post with the id ".$id, 404);
         }
-    } */
-
-
-    public function showPost($id)
-    {
-        /* Function for logged in users */
-        if(Auth::id()){
-            try{
-                $post=Post::with("tags","comments.user","user", "votes")->findOrFail($id);
-    
-                $prev=$post->previousPost()->take(2)->get();
-                $next=$post->nextPost()->take(2)->get();
-    
-                $post->increment("views");
-                $post->save();
-                $postResponse=json_decode($post);
-    
-                $hasFavorite=$post->users_with_favorite->contains($userId);
-                
-                $vote=$post->votes()->where('user_id',$userId)->first();
-                if($vote){
-                    $postResponse->vote=$vote->vote;
-                }
-        
-                
-                $postResponse->users_with_favorite=$hasFavorite;
-                $postResponse->prev=$prev;
-                $postResponse->next=$next;
-                return json_encode($postResponse);
-            }
-            
-            catch(ModelNotFoundException $e){
-                return response("could not find post with the id ".$id, 404);
-            }
-        }
-        /* if auth failed logged user out */
-        return response("looks like you have been logged out ".$id, 403);
     }
+
+
 
     public function showNextPost($id){
         /* only update the next posts since previous posts are already in frontend */
         try{
-            $nextPost=Post::where("id", ">", $id)->with("tags","comments.user","user", "votes")->first();
-            $postPreview=$next=$post->nextPost()->take(2)->select('id','thumbnail')->get();
-            return $nextPosts;
+            $post=Post::where("id", ">", $id)->with("tags","comments.user","user")->first();
+            $postPreview=$post->nextPost()->select('id','thumbnail')->skip(1)->first();
+            
+            $userId = Auth::id();
+            $userVote=0;
+            $hasFavorite=false;
+            if($userId){
+                $hasFavorite=$post->users_with_favorite->contains($userId);
+                $vote=$post->votes()->where('user_id',$userId)->first();
+                if($vote){
+                    $userVote=$vote->vote;
+                }
+            }
+            $post=json_decode($post);
+            $post->users_with_favorite=$hasFavorite;
+            $post->vote=$userVote;
+            $post->next=$postPreview;
+            return json_encode($post);
         }
         catch(ModelNotFoundException $e){
             return response("could not find a post after ".$id, 404);
@@ -304,11 +337,29 @@ class PostsController extends Controller
     }
 
     public function showPrevPost($id){
+        /* only update the next posts since previous posts are already in frontend */
         try{
-
+            $post=Post::where("id", "<", $id)->orderBy('id','desc')->with("tags","comments.user","user", "votes")->first();
+            $postPreview=$next=$post->previousPost()->take(2)->select('id','thumbnail')->get();
+            
+            $userId = Auth::id();
+            $userVote=0;
+            $hasFavorite=false;
+            if($userId){
+                $hasFavorite=$post->users_with_favorite->contains($userId);
+                $vote=$post->votes()->where('user_id',$userId)->first();
+                if($vote){
+                    $userVote=$vote->vote;
+                }
+            }
+            $post=json_decode($post);
+            $post->users_with_favorite=$hasFavorite;
+            $post->vote=$userVote;
+            $post->prev=$postPreview;
+            return json_encode($post);
         }
         catch(ModelNotFoundException $e){
-            return response("could not find post with the id ".$id, 404);
+            return response("could not find a post after ".$id, 404);
         }
     }
 
