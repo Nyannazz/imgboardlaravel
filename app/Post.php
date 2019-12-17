@@ -25,9 +25,14 @@ class Post extends Model
         return $this->belongsToMany('App\User');
     }
 
+    
+
     public function nextPost(){
         return static::where('id', '>' ,$this->id)->select('id','thumbnail');
     }
+
+    
+
     public function previousPost(){
         return static::where('id', '<' ,$this->id)->select('id','thumbnail')->orderBy('id','desc');
 
