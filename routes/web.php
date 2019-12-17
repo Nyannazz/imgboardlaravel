@@ -51,8 +51,7 @@ Route::get('/logout', 'SessionsController@destroy'); */
 
 
 Route::get('/posts','PostsController@index');
-Route::get('/postswithoffset/{offsetId?}','PostsController@index');
-Route::get('/posts/new','PostsController@index');
+Route::get('/posts/new/{offsetId?}','PostsController@index');
 Route::get('/posts/popular','PostsController@index');
 
 Route::get('/posts/tag/{tagname}','PostsController@getByTag');

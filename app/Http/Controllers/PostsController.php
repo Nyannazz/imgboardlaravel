@@ -60,33 +60,24 @@ class PostsController extends Controller
             if($user){
                 /* $post=$user->posts()->with("tags","comments.user","user")->findOrFail($id);
                 return $post; */
-                $posts=$user->posts()->with("tags","comments.user","user")->get();
-                $prev=$posts->where('id', '>' ,$id)/* ->first()->only("id","thumbnail") */;
-                $next=$posts->where('id', '<' ,$id)/* ->first()->only('id','thumbnail') */;
-                $post=$posts->where("id",$id);
-                return json_encode([$prev,$post]);
-                $post=$posts->findOrFail($id);
-                $prev=$posts->where('id', '>' ,$id)->select('id','thumbnail')->first();
-                $next=$posts->where('id', '<' ,$id)->select('id','thumbnail')->orderBy('id','desc')->first();
+                $post=$user->posts()->with("tags","comments.user","user")->findOrFail($id);
+                
                 $post->increment("views");
                 
                 $userId = $user->id;
                 $userVote=0;
+                $post->save();
                 if($userId){
-                    $hasFavorite=$post->users_with_favorite->contains($userId);
+                    $post["is_favorite"]=$post->users_with_favorite->contains($userId);
                     $vote=$post->votes()->where('user_id',$userId)->first();
                     if($vote){
                         $userVote=$vote->vote;
                     }
                 }
         
-                $post->save();
-                $postResponse=json_decode($post);
-                $postResponse->users_with_favorite=$hasFavorite;
-                $postResponse->vote=$userVote;
-                $postResponse->prev=$prev;
-                $postResponse->next=$next;
-                return json_encode($postResponse);
+                $post["vote"]=$userVote;
+                
+                return $post;
             }
 
         }
