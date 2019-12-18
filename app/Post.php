@@ -2,11 +2,12 @@
 
 namespace App;
 
+use Auth;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-
+    protected $hidden=["users_with_favorite"];
 
     public function tags(){
         return $this->belongsToMany('App\Tag');
@@ -23,6 +24,14 @@ class Post extends Model
     }
     public function users_with_favorite(){
         return $this->belongsToMany('App\User');
+    }
+    public function is_favorite_post(){
+        $id=Auth::id();
+        if($id){
+            $favorite=$this->users_with_favorite->find($id);
+            return $favorite? true : false;
+        }return false;
+        
     }
 
     

@@ -59,14 +59,10 @@ Route::get('/posts/search_strict/{tagname}','PostsController@searchStrict');
 Route::get('/posts/search/{tagname}','PostsController@search');
 Route::get('/posts/insearch/{tagname}','PostsController@showInSearch');
 
-Route::get('/postwithpreview/{id}','PostsController@showWithPreview')->where('id', '[0-9]+');
-Route::get('/nextpost/{id}','PostsController@showNextPost')->where('id', '[0-9]+');
-Route::get('/prevpost/{id}','PostsController@showPrevPost')->where('id', '[0-9]+');
 
 Route::get('/posts/{id}','PostsController@show')->where('id', '[0-9]+');
 
 
-Route::get('/test/{id}','PostsController@testUser')->where('id', '[0-9]+');
 
 Route::post('/posts','PostsController@store');
 
